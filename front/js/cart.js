@@ -38,7 +38,7 @@ function add2Cart(productId, color, qty) {
 // Element HTML du cart
 const cartSection = document.getElementById("cart__items");
 // Fonction du bouton deleteItem du cart, qui supprime une entrée du local storage
-function deleteItem(e, items) {
+/*function deleteItem(e, items) {
   let index = e.target.classList[1].slice(-1);
   items.splice(index, 1);
   sessionStorage.setItem('panier', JSON.stringify(items));
@@ -46,8 +46,19 @@ function deleteItem(e, items) {
   if (items.length === 0) {
       sessionStorage.removeItem('panier');
   }
+}*/
+function deleteItem(event) {
+  let elt = event.closest("article");
+  let id = elt.getAttribute('data-id');
+  let color = elt.getAttribute('data-color');
+  let idColor = id + '-' + color;
+  const data = JSON.parse(localStorage.getItem("panier"))
+  localStorage.setItem("panier", JSON.stringify(data.filter(i => i[0] + '-' + i[1] !== idColor)));
+
+  window.location.reload()
 }
-/*function deleteItem() {
+/*function deleteItem(e) {
+  console.log(e)
   let items = getCart();
   for (let i = 0; i < items.length; i++) {
     let removedItem = items.splice(i, 1);
@@ -95,7 +106,7 @@ function fetchIdData() {
                       <input type="number" class="itemQuantity" name="itemQuantity" onchange="changeQuantity('${id}', '${color}', this.value)" min="1" max="100" value="${items[i][2]}">
                     </div>
                     <div class="cart__item__content__settings__delete">
-                      <p class="deleteItem" >Supprimer</p>
+                      <p class="deleteItem" onclick="deleteItem(this);">Supprimer</p>
                     </div>
                   </div>
                 </div>
@@ -109,19 +120,6 @@ function fetchIdData() {
     qty += items[i][2];
     document.getElementById("totalQuantity").innerHTML = qty;
   }
-  const suprimer = document.getElementsByClassName("deleteItem");
-        console.log(suprimer);
-        for (let btn of suprimer) {
-          btn.addEventListener('click',e =>{
-            console.log(e.target);
-            let elt = e.target.closest("article");
-            let id = elt.getAttribute('data-id');
-            console.log(elt.getAttribute('data-id'));
-            deleteItem(e.target)
-          })
-          console.log(btn);
-        }
-  
 }
 
 
@@ -136,7 +134,7 @@ function validateEmail(email) {
   const regexMail =
     /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
   if (regexMail.test(email) == false) {
-    emailErrorMsg.innerHTML = "Entrez une adresse e-mail valide.";
+    window.alert("Entrez une adresse e-mail valide.")
   } else {
     emailErrorMsg.innerHTML = null;
   }
@@ -148,7 +146,7 @@ const regexName =
 const firstNameErrorMsg = document.getElementById("firstNameErrorMsg");
 function validateFirstName(firstName) {
   if (regexName.test(firstName) == false) {
-    firstNameErrorMsg.innerHTML = "Entrez un prénom valide sans chiffre.";
+    window.alert("Entrez un prénom valide sans chiffre.")
   } else {
     firstNameErrorMsg.innerHTML = null;
   }
@@ -158,6 +156,7 @@ function validateFirstName(firstName) {
 const lastNameErrorMsg = document.getElementById("lastNameErrorMsg");
 function validateLastName(lastName) {
   if (regexName.test(lastName) == false) {
+    window.alert("Entrez un nom valide sans chiffre")
     lastNameErrorMsg.innerHTML = "Entrez un nom valide sans chiffre.";
   } else {
     lastNameErrorMsg.innerHTML = null;
@@ -168,6 +167,7 @@ function validateLastName(lastName) {
 const cityErrorMsg = document.getElementById("cityErrorMsg");
 function validateCity(city) {
   if (regexName.test(city) == false) {
+    window.alert("Entrez une commune valide sans chiffre.")
     cityErrorMsg.innerHTML = "Entrez une commune valide sans chiffre.";
   } else {
     cityErrorMsg.innerHTML = null;
@@ -220,14 +220,17 @@ orderButton.addEventListener("click", () => {
       "Content-Type": "application/json",
     },
     body: jsonData,
-  }).then(function (res) {
-    if (res.ok) {
-      localStorage.clear();
-      /*window.location.href = "./confirmation.html";*/
-    } else {
-      console.log(erreur);
-    }
-  });
+  })
+  .then((res) => res.json())
+    .then((json) => {
+      console.log(json)
+      localStorage.removeItem('panier')
+      window.location.href =`./confirmation.html?orderId=${json.orderId}`;
+    })
+    .catch(() => {
+      alert(error)
+    })   
 });
+
 
 fetchIdData();

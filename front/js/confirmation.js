@@ -1,5 +1,4 @@
-const contact = JSON.parse(localStorage.getItem("jsonData"));
-console.log()
-
-let orderId= document.getElementById("orderId");
-orderId.innerHTML = orderId.id;
+;(() => {
+    const orderId = new URL(location.href).searchParams.get('orderId') || 'ERREUR'
+    document.getElementById('orderId').textContent = orderId
+  })()

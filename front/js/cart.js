@@ -38,15 +38,7 @@ function add2Cart(productId, color, qty) {
 // Element HTML du cart
 const cartSection = document.getElementById("cart__items");
 // Fonction du bouton deleteItem du cart, qui supprime une entrée du local storage
-/*function deleteItem(e, items) {
-  let index = e.target.classList[1].slice(-1);
-  items.splice(index, 1);
-  sessionStorage.setItem('panier', JSON.stringify(items));
 
-  if (items.length === 0) {
-      sessionStorage.removeItem('panier');
-  }
-}*/
 function deleteItem(event) {
   let elt = event.closest("article");
   let id = elt.getAttribute('data-id');
@@ -57,15 +49,7 @@ function deleteItem(event) {
 
   window.location.reload()
 }
-/*function deleteItem(e) {
-  console.log(e)
-  let items = getCart();
-  for (let i = 0; i < items.length; i++) {
-    let removedItem = items.splice(i, 1);
-    localStorage.setItem("panier", JSON.stringify(items));
-    window.location.reload();
-  }
-}*/
+
 // La fonction qui récupere la veleur modifiée sur la page de la quantité d'un kanap, et qui met a jour le local storage.
 function changeQuantity(id, color, qty) {
   let items = getCart();
@@ -98,7 +82,8 @@ function fetchIdData() {
                 <div class="cart__item__content">
                   <div class="cart__item__content__titlePrice">
                     <h2>${product.name}</h2>
-                    <p>${product.price} €</p>
+                    <p> ${color}</p>
+                    <p> ${product.price} €</p>
                   </div>
                   <div class="cart__item__content__settings">
                     <div class="cart__item__content__settings__quantity">
@@ -127,53 +112,60 @@ function fetchIdData() {
 // Form elements & POST request ////////////////////
 ////////////////////////////////////////////////////////////////
 
-//// REGEXs
+const prenom = document.getElementById("firstName");
+const nom = document.getElementById("lastName");
+const ville = document.getElementById("city");
+const adresse = document.getElementById("address");
+const mail = document.getElementById("email");
+
 // email
 const emailErrorMsg = document.getElementById("emailErrorMsg");
-function validateEmail(email) {
+function validateEmail(mail) {
   const regexMail =
     /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-  if (regexMail.test(email) == false) {
-    window.alert("Entrez une adresse e-mail valide.")
+  if (regexMail.test(mail) == false) {
+    return false;
   } else {
     emailErrorMsg.innerHTML = null;
+    return true;
   }
 }
-// simple RegEx for names : caratères acceptés par la RegEx
-const regexName =
-  /^[a-zA-ZàáâäãåąčćęèéêëėįìíîïłńòóôöõøùúûüųūÿýżźñçčšžÀÁÂÄÃÅĄĆČĖĘÈÉÊËÌÍÎÏĮŁŃÒÓÔÖÕØÙÚÛÜŲŪŸÝŻŹÑßÇŒÆČŠŽ∂ð ,.'-]+$/u;
+// simple RegEx for names : accepted characters by RegEx
+
+const regexName = /^[a-z][a-z '-.,]{1,31}$|^$/i;
+
 // first name
 const firstNameErrorMsg = document.getElementById("firstNameErrorMsg");
-function validateFirstName(firstName) {
-  if (regexName.test(firstName) == false) {
-    window.alert("Entrez un prénom valide sans chiffre.")
+function validateFirstName(prenom) {
+  if (regexName.test(prenom) == false) {
+    return false;
   } else {
     firstNameErrorMsg.innerHTML = null;
+    return true;
   }
 }
 
 // last name
 const lastNameErrorMsg = document.getElementById("lastNameErrorMsg");
-function validateLastName(lastName) {
-  if (regexName.test(lastName) == false) {
-    window.alert("Entrez un nom valide sans chiffre")
-    lastNameErrorMsg.innerHTML = "Entrez un nom valide sans chiffre.";
+function validateLastName(nom) {
+  if (regexName.test(nom) == false) {
+    return false;
   } else {
     lastNameErrorMsg.innerHTML = null;
+    return true;
   }
 }
 
 // city
 const cityErrorMsg = document.getElementById("cityErrorMsg");
-function validateCity(city) {
-  if (regexName.test(city) == false) {
-    window.alert("Entrez une commune valide sans chiffre.")
-    cityErrorMsg.innerHTML = "Entrez une commune valide sans chiffre.";
+function validateCity(ville) {
+  if (regexName.test(ville) == false) {
+    return false;
   } else {
     cityErrorMsg.innerHTML = null;
+    return true;
   }
 }
-
 //////////// POST request
 // generation of the JSON to post
 // extract from backend, on voit bien qu'il faut generer une partie 'contact' et une partie 'products'
@@ -211,7 +203,34 @@ function makeJsonData() {
 // fonction anonyme par addEventListener qui fetch 'postUrl' et poste 'contact' et 'products'
 const postUrl = "http://localhost:3000/api/products/order/";
 const orderButton = document.getElementById("order");
-orderButton.addEventListener("click", () => {
+orderButton.addEventListener("click", (e) => {
+  {
+    e.preventDefault(); //prevent default form button action
+    // then below, prevent fetch to post without REGEXs permission :
+    let email = validateEmail(mail.value);
+    let firstName = validateFirstName(prenom.value);
+    let lastName = validateLastName(nom.value);
+    let city = validateCity(ville.value);
+    if (
+      email == false ||
+      firstName == false ||
+      lastName == false ||
+      city == false
+    ) {
+      if (email == false) {
+        emailErrorMsg.innerHTML = "Entrez une adresse e-mail valide.";
+      }
+      if (firstName == false) {
+        firstNameErrorMsg.innerHTML = "Entrez un prénom valide sans chiffre.";
+      }
+      if (lastName == false) {
+        lastNameErrorMsg.innerHTML = "Entrez un nom valide sans chiffre.";
+      }
+      if (city == false) {
+        cityErrorMsg.innerHTML = "Entrez une commune valide sans chiffre.";
+      }
+      return;
+    }
   let jsonData = makeJsonData();
   console.log(jsonData)
   fetch(postUrl, {
@@ -230,7 +249,7 @@ orderButton.addEventListener("click", () => {
     .catch(() => {
       alert(error)
     })   
-});
+}});
 
 
 fetchIdData();

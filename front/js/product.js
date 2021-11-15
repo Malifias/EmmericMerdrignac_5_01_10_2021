@@ -1,6 +1,5 @@
 (async function () {
   const productId = getProductId()
-    console.log(productId)
     const product = await getProduct(productId)
     let Id = productId;
     hydrateProduct(product)
@@ -13,11 +12,11 @@
 
   })()    
 
-
+// getting id of the teddy from the single.html URL
 function getProductId (){
     return new URL(location.href).searchParams.get("id")
 }
-
+// Fetching data from backend
 function getProduct(productId){
     return fetch(`http://localhost:3000/api/products/${productId}`)
     .then(function(res) {
